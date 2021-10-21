@@ -50,6 +50,7 @@ class Login extends Component {
 
   render() {
     const { state: { email, name }, handleChange, handleClick } = this;
+    const { history } = this.props;
 
     const validateButton = email !== '' && name !== '';
 
@@ -79,6 +80,13 @@ class Login extends Component {
         >
           Jogar
 
+        </button>
+        <button
+          type="button"
+          data-testid="btn-settings"
+          onClick={ () => { history.push('/configuration'); } }
+        >
+          Configurações
         </button>
       </form>
     );

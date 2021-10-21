@@ -7,9 +7,9 @@ const GRAVATAR_URL = 'https://www.gravatar.com/avatar/';
 const EMAIL_TO_HASH = (email) => md5(email).toString();
 
 class Header extends Component {
+
   render() {
     const { name, gravatarEmail } = this.props;
-
     return (
       <header>
         <img
