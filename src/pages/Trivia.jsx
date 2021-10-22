@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import Header from '../components/Header';
 import Loading from '../components/Loading';
 
+const DEZ = 10;
+const TRES = 3;
 class Trivia extends Component {
   constructor() {
     super();
@@ -10,6 +12,7 @@ class Trivia extends Component {
       loading: false,
       change: false,
       timer: 30,
+      disabled: false,
     };
     this.fetchTrivia = this.fetchTrivia.bind(this);
     this.content = this.content.bind(this);
@@ -20,6 +23,8 @@ class Trivia extends Component {
     this.fetchTrivia();
     const magicNumber = 1000;
     setInterval(() => this.setCronometer(), magicNumber);
+    const value = 0;
+    localStorage.setItem('pontos', value);
   }
 
   setCronometer() {
@@ -41,14 +46,31 @@ class Trivia extends Component {
     });
   }
 
-  handleClick() {
+  handleClick(event) {
+    const { questions: { results }, timer } = this.state;
     this.setState({
       change: true,
+      disabled: true,
     });
+    const getItemPontos = localStorage.getItem('pontos');
+    if (event.target.id === 'right') {
+      if (results[0].difficulty === 'easy') {
+        const value = parseInt(getItemPontos, 10) + DEZ + (timer * 1);
+        localStorage.setItem('pontos', value);
+      } if (results[0].difficulty === 'medium') {
+        const value = parseInt(getItemPontos, 10) + DEZ + (timer * 2);
+        localStorage.setItem('pontos', value);
+      } if (results[0].difficulty === 'hard') {
+        const value = parseInt(getItemPontos, 10) + DEZ + (timer * TRES);
+        localStorage.setItem('pontos', value);
+      }
+    }
   }
 
   content() {
-    const { questions: { results }, change, timer } = this.state;
+    const { questions: { results }, change, timer, disabled } = this.state;
+    const number = 0;
+    console.log(results);
     if (results !== undefined) {
       const rightQuestion = ([
         <button
@@ -58,9 +80,9 @@ class Trivia extends Component {
           data-testid="correct-answer"
           key="right-question"
           id="right"
-          disabled={ timer <= 0 }
+          disabled={ timer <= 0 || disabled }
         >
-          { results[0].correct_answer }
+          { results[number].correct_answer }
         </button>,
       ]);
       const wrongQuestion = results[0].incorrect_answers.map((answer, index) => (
@@ -71,7 +93,7 @@ class Trivia extends Component {
           data-testid={ `wrong-answer-${index}` }
           key={ index }
           id="wrong"
-          disabled={ timer <= 0 }
+          disabled={ timer <= 0 || disabled }
         >
           { answer }
         </button>
@@ -95,10 +117,12 @@ class Trivia extends Component {
 
   render() {
     const { loading, timer } = this.state;
+    const getItemPoints = localStorage.getItem('pontos');
     return (
       <section>
         {loading ? <Loading /> : this.content()}
-        {timer}
+        <p>{timer}</p>
+        <p>{getItemPoints}</p>
       </section>
     );
   }
