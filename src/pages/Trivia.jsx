@@ -8,9 +8,11 @@ class Trivia extends Component {
     this.state = {
       questions: [],
       loading: false,
+      change: false,
     };
     this.fetchTrivia = this.fetchTrivia.bind(this);
     this.content = this.content.bind(this);
+    this.handleClick = this.handleClick.bind(this);
   }
 
   componentDidMount() {
@@ -29,25 +31,35 @@ class Trivia extends Component {
     });
   }
 
+  handleClick() {
+    this.setState({
+      change: true,
+    });
+  }
+
   content() {
-    const { questions: { results } } = this.state;
+    const { questions: { results }, change } = this.state;
     if (results !== undefined) {
       const rightQuestion = ([
         <button
-          className="right"
+          className={ change && 'green' }
+          onClick={ this.handleClick }
           type="button"
           data-testid="correct-answer"
           key="right-question"
+          id="right"
         >
           { results[0].correct_answer }
         </button>,
       ]);
       const wrongQuestion = results[0].incorrect_answers.map((answer, index) => (
         <button
-          className="wrong"
+          className={ change && 'red' }
+          onClick={ this.handleClick }
           type="button"
           data-testid={ `wrong-answer-${index}` }
           key={ index }
+          id="wrong"
         >
           { answer }
         </button>
