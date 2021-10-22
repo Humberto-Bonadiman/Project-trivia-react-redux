@@ -9,6 +9,7 @@ class Trivia extends Component {
       questions: [],
       loading: false,
       change: false,
+      timer: 30,
     };
     this.fetchTrivia = this.fetchTrivia.bind(this);
     this.content = this.content.bind(this);
@@ -17,6 +18,15 @@ class Trivia extends Component {
 
   componentDidMount() {
     this.fetchTrivia();
+    const magicNumber = 1000;
+    setInterval(() => this.setCronometer(), magicNumber);
+  }
+
+  setCronometer() {
+    const { timer } = this.state;
+    if (timer > 0) {
+      this.setState((prevState) => ({ timer: prevState.timer - 1 }));
+    }
   }
 
   async fetchTrivia() {
@@ -38,7 +48,7 @@ class Trivia extends Component {
   }
 
   content() {
-    const { questions: { results }, change } = this.state;
+    const { questions: { results }, change, timer } = this.state;
     if (results !== undefined) {
       const rightQuestion = ([
         <button
@@ -48,6 +58,7 @@ class Trivia extends Component {
           data-testid="correct-answer"
           key="right-question"
           id="right"
+          disabled={ timer <= 0 }
         >
           { results[0].correct_answer }
         </button>,
@@ -60,6 +71,7 @@ class Trivia extends Component {
           data-testid={ `wrong-answer-${index}` }
           key={ index }
           id="wrong"
+          disabled={ timer <= 0 }
         >
           { answer }
         </button>
@@ -82,10 +94,11 @@ class Trivia extends Component {
   }
 
   render() {
-    const { loading } = this.state;
+    const { loading, timer } = this.state;
     return (
       <section>
         {loading ? <Loading /> : this.content()}
+        {timer}
       </section>
     );
   }
