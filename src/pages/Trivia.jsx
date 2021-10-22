@@ -32,31 +32,38 @@ class Trivia extends Component {
   content() {
     const { questions: { results } } = this.state;
     if (results !== undefined) {
-      console.log(results);
+      const rightQuestion = ([
+        <button
+          className="right"
+          type="button"
+          data-testid="correct-answer"
+          key="right-question"
+        >
+          { results[0].correct_answer }
+        </button>,
+      ]);
+      const wrongQuestion = results[0].incorrect_answers.map((answer, index) => (
+        <button
+          className="wrong"
+          type="button"
+          data-testid={ `wrong-answer-${index}` }
+          key={ index }
+        >
+          { answer }
+        </button>
+      ));
+      const allQuestions = [...rightQuestion, ...wrongQuestion];
+      const pointFive = 0.5;
       return (
         <section>
           <Header />
           <p data-testid="question-category">
-            Category:
             { results[0].category }
           </p>
           <p data-testid="question-text">
-            Results:
             { results[0].question }
           </p>
-          <button data-testid="correct-answer" type="button">
-            { results[0].correct_answer }
-          </button>
-          { results[0].incorrect_answers.map((answer, index) => (
-            <button
-              key={ index }
-              data-testid={ `wrong-answer-${index}` }
-              type="button"
-            >
-              { answer }
-
-            </button>
-          )) }
+          {allQuestions.sort(() => pointFive - Math.random())}
         </section>
       );
     }
