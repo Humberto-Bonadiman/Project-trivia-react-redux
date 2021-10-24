@@ -17,6 +17,8 @@ class Trivia extends Component {
     this.fetchTrivia = this.fetchTrivia.bind(this);
     this.content = this.content.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.addBtnNextQuestion = this.addBtnNextQuestion.bind(this);
+    this.onBtnNextQuestion = this.onBtnNextQuestion.bind(this);
   }
 
   componentDidMount() {
@@ -25,6 +27,10 @@ class Trivia extends Component {
     setInterval(() => this.setCronometer(), magicNumber);
     const value = 0;
     localStorage.setItem('pontos', value);
+  }
+
+  onBtnNextQuestion() {
+    // proxima pergunta
   }
 
   setCronometer() {
@@ -65,6 +71,13 @@ class Trivia extends Component {
         localStorage.setItem('pontos', value);
       }
     }
+  }
+
+  // npm run cy:open  // npm run cy
+  addBtnNextQuestion() {
+    return (
+      <button type="button" data-testid="btn-next">Próxima</button>
+    );
   }
 
   content() {
@@ -116,13 +129,14 @@ class Trivia extends Component {
   }
 
   render() {
-    const { loading, timer } = this.state;
+    const { loading, timer, disabled } = this.state;
     const getItemPoints = localStorage.getItem('pontos');
     return (
       <section>
         {loading ? <Loading /> : this.content()}
         <p>{timer}</p>
-        <p>{getItemPoints}</p>
+        <p>{ getItemPoints }</p>
+        { disabled ? this.addBtnNextQuestion() : null }
       </section>
     );
   }
