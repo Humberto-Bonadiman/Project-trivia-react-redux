@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import Header from '../components/Header';
 import Loading from '../components/Loading';
 
@@ -17,6 +18,8 @@ class Trivia extends Component {
     this.fetchTrivia = this.fetchTrivia.bind(this);
     this.content = this.content.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.addBtnNextQuestion = this.addBtnNextQuestion.bind(this);
+    this.onBtnNextQuestion = this.onBtnNextQuestion.bind(this);
   }
 
   componentDidMount() {
@@ -25,6 +28,14 @@ class Trivia extends Component {
     setInterval(() => this.setCronometer(), magicNumber);
     const value = 0;
     localStorage.setItem('pontos', value);
+  }
+
+  onBtnNextQuestion() {
+    const { ...player } = this.props;
+    const locatStorageData = localStorage.getItem('player');
+    console.log('aqui redux state', player.name, player.score);
+    console.log('aqui Local storage', JSON.parse(locatStorageData));
+    // proxima pergunta
   }
 
   setCronometer() {
@@ -47,30 +58,45 @@ class Trivia extends Component {
   }
 
   handleClick(event) {
+    const { ...player } = this.props;
     const { questions: { results }, timer } = this.state;
     this.setState({
       change: true,
       disabled: true,
     });
-    const getItemPontos = localStorage.getItem('pontos');
+    const getItemPontos = localStorage.getItem(player.score);
     if (event.target.id === 'right') {
       if (results[0].difficulty === 'easy') {
         const value = parseInt(getItemPontos, 10) + DEZ + (timer * 1);
-        localStorage.setItem('pontos', value);
+        player.score = value;
       } if (results[0].difficulty === 'medium') {
         const value = parseInt(getItemPontos, 10) + DEZ + (timer * 2);
-        localStorage.setItem('pontos', value);
+        player.score = value;
       } if (results[0].difficulty === 'hard') {
         const value = parseInt(getItemPontos, 10) + DEZ + (timer * TRES);
-        localStorage.setItem('pontos', value);
+        player.score = value;
       }
     }
+    localStorage.setItem('player', JSON.stringify(player));
+  }
+
+  // npm run cy:open  // npm run cy
+  addBtnNextQuestion() {
+    return (
+      <button
+        type="button"
+        data-testid="btn-next"
+        onClick={ this.onBtnNextQuestion }
+      >
+        Próxima
+      </button>
+    );
   }
 
   content() {
     const { questions: { results }, change, timer, disabled } = this.state;
     const number = 0;
-    console.log(results);
+    // console.log(results);
     if (results !== undefined) {
       const rightQuestion = ([
         <button
@@ -116,16 +142,23 @@ class Trivia extends Component {
   }
 
   render() {
-    const { loading, timer } = this.state;
+    const { loading, timer, disabled } = this.state;
     const getItemPoints = localStorage.getItem('pontos');
     return (
       <section>
         {loading ? <Loading /> : this.content()}
         <p>{timer}</p>
-        <p>{getItemPoints}</p>
+        <p>{ getItemPoints }</p>
+        { disabled ? this.addBtnNextQuestion() : null }
       </section>
     );
   }
 }
 
-export default Trivia;
+// trazendo state do currency ao abrir página
+const mapStateToProps = (state) => ({
+  name: state.user.name,
+  email: state.user.gravatarEmail,
+});
+
+export default connect(mapStateToProps)(Trivia);
