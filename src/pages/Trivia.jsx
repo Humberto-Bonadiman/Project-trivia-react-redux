@@ -16,9 +16,9 @@ class Trivia extends Component {
       timer: 30,
       disabled: false,
       number: 0,
-      score: 0,
       rightAnswers: 0,
     };
+
     this.fetchTrivia = this.fetchTrivia.bind(this);
     this.content = this.content.bind(this);
     this.handleClick = this.handleClick.bind(this);
@@ -27,18 +27,36 @@ class Trivia extends Component {
   }
 
   componentDidMount() {
-    const { score } = this.state;
-    const magicNumber = 1000;
-
     this.fetchTrivia();
 
-    localStorage.setItem('score', score);
+    const { name, email } = this.props;
+    const magicNumber = 1000;
+
+    const scoreObj = {
+      player: {
+        name,
+        gravatarEmail: email,
+        assertions: 0,
+        score: 0,
+      },
+    };
+
+    localStorage.setItem('state', JSON.stringify(scoreObj));
     setInterval(() => this.setCronometer(), magicNumber);
   }
 
   onBtnNextQuestion() {
     const { number, rightAnswers } = this.state;
     const { history } = this.props;
+
+    const localState = JSON.parse(localStorage.getItem('state'));
+
+    const obj = {
+      player: {
+        ...localState.player,
+        assertions: 0,
+      },
+    };
 
     const THREE = 3;
 
@@ -49,8 +67,10 @@ class Trivia extends Component {
       disabled: false,
     }));
 
+    obj.player.assertions = rightAnswers;
+
     if (number > THREE) {
-      localStorage.setItem('rightAnswers', rightAnswers);
+      localStorage.setItem('state', JSON.stringify(obj));
       history.push('/feedback');
     }
   }
@@ -76,8 +96,14 @@ class Trivia extends Component {
 
   handleClick(event) {
     const { questions: { results }, timer, number } = this.state;
+    const localState = JSON.parse(localStorage.getItem('state'));
 
-    const localScore = localStorage.getItem('score');
+    const obj = {
+      player: {
+        ...localState.player,
+        score: 0,
+      },
+    };
 
     this.setState({
       change: true,
@@ -86,14 +112,14 @@ class Trivia extends Component {
 
     if (event.target.id === 'right') {
       if (results[number].difficulty === 'easy') {
-        const value = parseInt(localScore, 10) + DEZ + (timer * 1);
-        localStorage.setItem('score', value);
+        obj.player.score = parseInt(localState.player.score, 10) + DEZ + (timer * 1);
+        localStorage.setItem('state', JSON.stringify(obj));
       } if (results[number].difficulty === 'medium') {
-        const value = parseInt(localScore, 10) + DEZ + (timer * 2);
-        localStorage.setItem('score', value);
+        obj.player.score = parseInt(localState.player.score, 10) + DEZ + (timer * 2);
+        localStorage.setItem('state', JSON.stringify(obj));
       } if (results[number].difficulty === 'hard') {
-        const value = parseInt(localScore, 10) + DEZ + (timer * TRES);
-        localStorage.setItem('score', value);
+        obj.player.score = parseInt(localState.player.score, 10) + DEZ + (timer * TRES);
+        localStorage.setItem('state', JSON.stringify(obj));
       }
 
       this.setState((prevState) => ({ rightAnswers: prevState.rightAnswers + 1 }));
@@ -167,12 +193,11 @@ class Trivia extends Component {
 
   render() {
     const { loading, timer, disabled } = this.state;
-    const getItemPoints = localStorage.getItem('score');
+
     return (
       <section>
         {loading ? <Loading /> : this.content()}
         <p>{timer}</p>
-        <p>{ getItemPoints }</p>
         { disabled ? this.addBtnNextQuestion() : null }
       </section>
     );
@@ -180,9 +205,11 @@ class Trivia extends Component {
 }
 
 Trivia.propTypes = {
+  email: PropTypes.string.isRequired,
   history: PropTypes.shape({
     push: PropTypes.func,
   }).isRequired,
+  name: PropTypes.string.isRequired,
 };
 
 const mapStateToProps = (state) => ({

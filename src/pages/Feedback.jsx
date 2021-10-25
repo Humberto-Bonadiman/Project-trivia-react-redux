@@ -11,8 +11,8 @@ class Feedback extends Component {
 
   handleFeedback() {
     const TRHEE = 3;
-    const rightAnswersAmount = parseInt(localStorage.getItem('rightAnswers'), 10);
-    const totalScore = parseInt(localStorage.getItem('score'), 10);
+    const totalScore = JSON.parse(localStorage.getItem('state'));
+    const rightAnswersAmount = totalScore.player.assertions;
 
     if (rightAnswersAmount < TRHEE) {
       return (
@@ -25,12 +25,12 @@ class Feedback extends Component {
           <h3
             data-testid="feedback-total-score"
           >
-            { totalScore }
+            { totalScore.player.score }
           </h3>
           <h3
             data-testid="feedback-total-question"
           >
-            {rightAnswersAmount}
+            { rightAnswersAmount }
           </h3>
         </>
       );
@@ -46,12 +46,12 @@ class Feedback extends Component {
         <h3
           data-testid="feedback-total-score"
         >
-          { totalScore }
+          { totalScore.player.score }
         </h3>
         <h3
           data-testid="feedback-total-question"
         >
-          {rightAnswersAmount}
+          { rightAnswersAmount }
         </h3>
       </>
     );

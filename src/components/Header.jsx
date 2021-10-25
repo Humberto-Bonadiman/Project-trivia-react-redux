@@ -9,7 +9,7 @@ const EMAIL_TO_HASH = (email) => md5(email).toString();
 class Header extends Component {
   render() {
     const { name, gravatarEmail } = this.props;
-    const score = parseInt(localStorage.getItem('score'), 10);
+    const score = JSON.parse(localStorage.getItem('state'));
 
     return (
       <header>
@@ -19,7 +19,7 @@ class Header extends Component {
           data-testid="header-profile-picture"
         />
         <span data-testid="header-player-name">{ name }</span>
-        <span data-testid="header-score">{ score }</span>
+        <span data-testid="header-score">{ score.player.score }</span>
       </header>
     );
   }
