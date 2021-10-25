@@ -4,10 +4,12 @@ import {
 } from '../actions/index';
 
 const INITIAL_STATE = {
-  name: '',
-  assertions: '',
-  score: 0,
-  gravatarEmail: '',
+  player: {
+    name: '',
+    assertions: 0,
+    score: 0,
+    gravatarEmail: '',
+  },
 };
 
 const user = (state = INITIAL_STATE, action) => {
