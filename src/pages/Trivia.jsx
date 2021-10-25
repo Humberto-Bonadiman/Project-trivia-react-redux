@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import Header from '../components/Header';
@@ -14,6 +15,9 @@ class Trivia extends Component {
       change: false,
       timer: 30,
       disabled: false,
+      number: 0,
+      score: 0,
+      rightAnswers: 0,
     };
     this.fetchTrivia = this.fetchTrivia.bind(this);
     this.content = this.content.bind(this);
@@ -23,19 +27,32 @@ class Trivia extends Component {
   }
 
   componentDidMount() {
-    this.fetchTrivia();
+    const { score } = this.state;
     const magicNumber = 1000;
+
+    this.fetchTrivia();
+
+    localStorage.setItem('score', score);
     setInterval(() => this.setCronometer(), magicNumber);
-    const value = 0;
-    localStorage.setItem('pontos', value);
   }
 
   onBtnNextQuestion() {
-    const { ...player } = this.props;
-    const locatStorageData = localStorage.getItem('player');
-    console.log('aqui redux state', player.name, player.score);
-    console.log('aqui Local storage', JSON.parse(locatStorageData));
-    // proxima pergunta
+    const { number, rightAnswers } = this.state;
+    const { history } = this.props;
+
+    const THREE = 3;
+
+    this.setState((prevState) => ({
+      number: prevState.number + 1,
+      change: false,
+      timer: 30,
+      disabled: false,
+    }));
+
+    if (number > THREE) {
+      localStorage.setItem('rightAnswers', rightAnswers);
+      history.push('/feedback');
+    }
   }
 
   setCronometer() {
@@ -48,7 +65,7 @@ class Trivia extends Component {
   async fetchTrivia() {
     this.setState({ loading: true });
     const tokenLocalStorage = localStorage.getItem('token');
-    const URL = `https://opentdb.com/api.php?amount=5&token=${tokenLocalStorage}`;
+    const URL = `https://opentdb.com/api.php?amount=6&token=${tokenLocalStorage}`;
     const request = await fetch(URL);
     const response = await request.json();
     this.setState({
@@ -58,29 +75,31 @@ class Trivia extends Component {
   }
 
   handleClick(event) {
-    const { ...player } = this.props;
-    const { questions: { results }, timer } = this.state;
+    const { questions: { results }, timer, number } = this.state;
+
+    const localScore = localStorage.getItem('score');
+
     this.setState({
       change: true,
       disabled: true,
     });
-    const getItemPontos = localStorage.getItem(player.score);
+
     if (event.target.id === 'right') {
-      if (results[0].difficulty === 'easy') {
-        const value = parseInt(getItemPontos, 10) + DEZ + (timer * 1);
-        player.score = value;
-      } if (results[0].difficulty === 'medium') {
-        const value = parseInt(getItemPontos, 10) + DEZ + (timer * 2);
-        player.score = value;
-      } if (results[0].difficulty === 'hard') {
-        const value = parseInt(getItemPontos, 10) + DEZ + (timer * TRES);
-        player.score = value;
+      if (results[number].difficulty === 'easy') {
+        const value = parseInt(localScore, 10) + DEZ + (timer * 1);
+        localStorage.setItem('score', value);
+      } if (results[number].difficulty === 'medium') {
+        const value = parseInt(localScore, 10) + DEZ + (timer * 2);
+        localStorage.setItem('score', value);
+      } if (results[number].difficulty === 'hard') {
+        const value = parseInt(localScore, 10) + DEZ + (timer * TRES);
+        localStorage.setItem('score', value);
       }
+
+      this.setState((prevState) => ({ rightAnswers: prevState.rightAnswers + 1 }));
     }
-    localStorage.setItem('player', JSON.stringify(player));
   }
 
-  // npm run cy:open  // npm run cy
   addBtnNextQuestion() {
     return (
       <button
@@ -93,10 +112,15 @@ class Trivia extends Component {
     );
   }
 
+  encodeUtf8(string) {
+    // função do Lucas Rodrigues Turma 08
+    const stringUTF = unescape(encodeURIComponent(string));
+    return stringUTF.replace(/&quot;|&#039;/gi, '\'');
+  }
+
   content() {
-    const { questions: { results }, change, timer, disabled } = this.state;
-    const number = 0;
-    // console.log(results);
+    const { questions: { results }, change, timer, disabled, number } = this.state;
+
     if (results !== undefined) {
       const rightQuestion = ([
         <button
@@ -111,7 +135,7 @@ class Trivia extends Component {
           { results[number].correct_answer }
         </button>,
       ]);
-      const wrongQuestion = results[0].incorrect_answers.map((answer, index) => (
+      const wrongQuestion = results[number].incorrect_answers.map((answer, index) => (
         <button
           className={ change && 'red' }
           onClick={ this.handleClick }
@@ -130,10 +154,10 @@ class Trivia extends Component {
         <section>
           <Header />
           <p data-testid="question-category">
-            { results[0].category }
+            { results[number].category }
           </p>
           <p data-testid="question-text">
-            { results[0].question }
+            { this.encodeUtf8(results[number].question) }
           </p>
           {allQuestions.sort(() => pointFive - Math.random())}
         </section>
@@ -143,7 +167,7 @@ class Trivia extends Component {
 
   render() {
     const { loading, timer, disabled } = this.state;
-    const getItemPoints = localStorage.getItem('pontos');
+    const getItemPoints = localStorage.getItem('score');
     return (
       <section>
         {loading ? <Loading /> : this.content()}
@@ -155,7 +179,12 @@ class Trivia extends Component {
   }
 }
 
-// trazendo state do currency ao abrir página
+Trivia.propTypes = {
+  history: PropTypes.shape({
+    push: PropTypes.func,
+  }).isRequired,
+};
+
 const mapStateToProps = (state) => ({
   name: state.user.name,
   email: state.user.gravatarEmail,
